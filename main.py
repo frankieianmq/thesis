@@ -6,7 +6,7 @@ avgLowTime = 3600 + random.randint(0,1000) % 43200
 avgHighTime = 3600 + random.randint(0,1000) % 43200
 MIN_IN_SECONDS = 60
 HOUR_IN_SECONDS = 3600
-FORWARD = 0
+FORWARD = 1
 END_LOAD_STATE = 0
 MIN_MEM_PER_JOB_CORE = 100
 MIN_DISK_PER_JOB_CORE = 100
@@ -79,7 +79,7 @@ def GetNextLoadDuration(lState):
             lDuration = avgLowTime
         else:
             lDuration = avgHighTime
-    return 0
+    return lDuration
 
 
 def CalcTotalCoreCount(child):
@@ -102,7 +102,7 @@ def CalcCoresInUse(submitTime, jobList, jID):
 
     for x in range(jID):
         job = jobList[x]
-        print(job)
+        #print(job)
         completionTime = job["submitTime"] + job["actRunTime"]
 
         if completionTime > submitTime:
@@ -111,14 +111,13 @@ def CalcCoresInUse(submitTime, jobList, jID):
     return coresInUse
 
 
-
+"""
 def generateWorkload():
-
-
     return 0
-
 def GetWorkloadInfo():
     return 0
+"""
+
 
 
 def main():
@@ -156,12 +155,13 @@ def main():
         # Generate a submit time that is not the same
         submitTime += random.randint(0,5000) % submitInterval + 1
 
-        # Todo commenting - Not sure what to do
+        print(submitInterval)
+
         if submitTime > curLoadETime and ((lDir > 0 and curLoad >= targetLoad) or (lDir < 0 and curLoad <= targetLoad)):
 
             curLoadSTime = curLoadETime
-            if lState + lDir < Load_Low or lState + lDir >= END_LOAD_STATE:
-                lDir *= -1
+            if (lState + lDir) < Load_Low or (lState + lDir) >= END_LOAD_STATE:
+                lDir = lDir * -1
             lState += lDir
             targetLoad = targetLoad + loadOffset * lDir
             curLoadETime = curLoadSTime + GetNextLoadDuration(lState)
