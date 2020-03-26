@@ -1,3 +1,10 @@
+"""
+This file generates jobs: conversion of code from DS-Sim (C to Python)
+This file aims to give people a better understanding of how generation works, and
+for further implementation when model has been produced
+"""
+
+
 import xml.etree.ElementTree as ET
 import random
 

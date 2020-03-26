@@ -1,12 +1,16 @@
 """
 This python file will parse the log(s) of workloads and extract the data
 """
+import os
 
 # Function will parse logs
 # Returns log as a list
 # input files must be a list
 def parseLog(files):
     logList = []
+
+    if type(files) == str:
+        files = grabPath(files)
 
     for file in files:
         filepath = file
@@ -18,3 +22,14 @@ def parseLog(files):
                 line = fp.readline()
 
     return logList
+
+
+# Input = folder location
+# Returns a list of items in folder
+def grabPath(path):
+    pth = path
+    list = []
+    for (dirpath, dirnames, filenames) in os.walk(pth):
+        list = [(dirpath + "\\" + y) for y in filenames]
+    return list
+
