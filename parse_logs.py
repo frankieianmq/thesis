@@ -14,13 +14,14 @@ def parseLog(files):
 
     for file in files:
         filepath = file
+        log = []
         with open(filepath) as fp:
             line = fp.readline()
             while line and len(line) != 0:
                 if line[0] != ';':
-                    logList.append(line.split())
+                    log.append(line.split())
                 line = fp.readline()
-
+        logList.append(log)
     return logList
 
 
@@ -33,3 +34,23 @@ def grabPath(path):
         list = [(dirpath + "\\" + y) for y in filenames]
     return list
 
+def parseLogInfo(files):
+    logList = []
+
+    if type(files) == str:
+        files = grabPath(files)
+
+    for file in files:
+        log = []
+        with open(file) as fp:
+            line = fp.readline()
+            count = 0
+            while count == 0:
+                if line[0] == ';':
+                    splitLine = line.split()
+                    if len(splitLine) > 1 and splitLine[1] == "UnixStartTime:":
+                        logList.append(splitLine[2])
+                else:
+                    count = 1
+                line = fp.readline()
+    return logList
