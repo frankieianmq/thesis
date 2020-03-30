@@ -16,9 +16,15 @@ import datetime as dt
 
 # Location can be either a folder location or
 # a list of logs
-folder = 'G:\My Drive\Workload Logs'
+folder = 'G:\My Drive\Session 1 2020\Workload Logs'
 
 files = grabPath(folder)
+
+
+# Checks if it is power of two
+# Source https://stackoverflow.com/questions/600293/how-to-check-if-a-number-is-a-power-of-2/600306#600306
+def is_power_of_two(n):
+    return (n != 0 ) and (n & (n-1) == 0)
 
 
 # Extracts submit time: How long it takes
@@ -73,8 +79,11 @@ def graphSubmitTime(submitTime):
 
 
 # Todo - Graph runtime for all four workloads
-def graphRunTime():
-    return 0
+def graphRunTime(runTime):
+    count = Counter(runTime)
+    print(count)
+    plt.bar(count.keys(), count.values())
+    plt.show()
 
 
 # Todo - Graph Job Requirements (e.g. processors, memory usage)
@@ -82,6 +91,44 @@ def graphRunTime():
 def graphJobReq():
     return 0
 
+def graphJobSize(jobSize):
+    count = Counter(jobSize)
+
+    # Analysis
+    print(count)
+    print(count.values())
+    print(count.keys())
+    plt.bar(count.keys(), count.values())
+    plt.show()
+
+
+#
+def analyseJobSize(countedJobSize, range):
+    analysis = {}
+    jobCount = 0
+    inRange = 0
+    powerOfTwo = 0
+    even = 0
+    odd = 0
+
+    for key, value in countedJobSize.items():
+        jobCount += 1
+
+        # Check % of job within range
+        if key < range:
+            inRange += value
+
+        # Check % of job even or odd
+        if key % 2 == 0:
+            even += value
+        else:
+            odd += value
+
+        # Checks % of job that are power of 2
+        if is_power_of_two(key):
+            powerOfTwo += value
+
+    return 0
 
 # Todo - Graph Job Cancellations
 def graphJobCanc():
@@ -90,13 +137,19 @@ def graphJobCanc():
 
 # Todo - Complete full graph construction
 def main():
+
     file = [files[0]]
     print(file)
     logOne = parseLog(file)
     logTime = parseLogInfo(folder)
-    submitTime = extractSubTime(logOne, 1)
-    runTime = extractInfo(logOne, 3)
+    plt.xlim((0, 260))
+    plt.ylim((0, 16000))
+    # submitTime = extractSubTime(logOne, 1)
+    # runTime = extractInfo(logOne, 3)
+    jobSize = extractInfo(logOne, 7)
 
+    # graphRunTime(runTime)
+    graphJobSize(jobSize)
 
 
 main()
