@@ -95,6 +95,7 @@ def graphJobSize(jobSize):
     count = Counter(jobSize)
 
     # Analysis
+    print(analyseJobSize(count, 32))
     print(count)
     print(count.values())
     print(count.keys())
@@ -104,7 +105,6 @@ def graphJobSize(jobSize):
 
 #
 def analyseJobSize(countedJobSize, range):
-    analysis = {}
     jobCount = 0
     inRange = 0
     powerOfTwo = 0
@@ -112,10 +112,10 @@ def analyseJobSize(countedJobSize, range):
     odd = 0
 
     for key, value in countedJobSize.items():
-        jobCount += 1
+        jobCount += value
 
         # Check % of job within range
-        if key < range:
+        if key <= range:
             inRange += value
 
         # Check % of job even or odd
@@ -127,8 +127,9 @@ def analyseJobSize(countedJobSize, range):
         # Checks % of job that are power of 2
         if is_power_of_two(key):
             powerOfTwo += value
-
-    return 0
+    analyse = [inRange, powerOfTwo, even, odd]
+    analyse = [round(x/jobCount, 3) for x in analyse]
+    return analyse
 
 # Todo - Graph Job Cancellations
 def graphJobCanc():
@@ -138,7 +139,7 @@ def graphJobCanc():
 # Todo - Complete full graph construction
 def main():
 
-    file = [files[0]]
+    file = [files[3]]
     print(file)
     logOne = parseLog(file)
     logTime = parseLogInfo(folder)
@@ -146,7 +147,7 @@ def main():
     plt.ylim((0, 16000))
     # submitTime = extractSubTime(logOne, 1)
     # runTime = extractInfo(logOne, 3)
-    jobSize = extractInfo(logOne, 7)
+    jobSize = extractInfo(logOne, 4)
 
     # graphRunTime(runTime)
     graphJobSize(jobSize)
