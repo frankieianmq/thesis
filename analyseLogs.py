@@ -4,7 +4,8 @@ Variable List:
 1 - Submit Time
 3- Run time
 7 - Req Num of Processors
-10 - Req Mem
+9 - Req Mem
+10 - Status (1: Complete, 0: Failed, 5: cancelled)
 
 """
 from parse_logs import parseLog, grabPath, parseLogInfo
@@ -13,6 +14,8 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as md
 import numpy as np
 import datetime as dt
+import matplotlib.ticker as mtick
+
 
 # Location can be either a folder location or
 # a list of logs
@@ -24,7 +27,9 @@ files = grabPath(folder)
 # Checks if it is power of two
 # Source https://stackoverflow.com/questions/600293/how-to-check-if-a-number-is-a-power-of-2/600306#600306
 def is_power_of_two(n):
-    return (n != 0 ) and (n & (n-1) == 0)
+    return (n != 0) and (n & (n-1) == 0)
+
+
 
 
 # Extracts submit time: How long it takes
@@ -43,8 +48,6 @@ def extractSubTime(log, variable):
                 extractedLog.append(time - oldTime)
                 oldCalc = time - oldTime
                 oldTime = time
-
-
 
     return extractedLog
 
@@ -128,29 +131,69 @@ def analyseJobSize(countedJobSize, range):
         if is_power_of_two(key):
             powerOfTwo += value
     analyse = [inRange, powerOfTwo, even, odd]
-    analyse = [round(x/jobCount, 3) for x in analyse]
+
     return analyse
 
 # Todo - Graph Job Cancellations
-def graphJobCanc():
+def analyseJobCanc(canc):
+    count = Counter(canc)
+
+    jobCount = 0
+
+    for x in count.values():
+        jobCount += x
+
+
+    print(count)
+    analyse = round(count[5] / jobCount, 3)
+    print(analyse)
+    return analyse
+
+
+def analyseJobMem(mem):
+    print(Counter(mem))
+
+    sorted_mem = np.sort(mem)
+
+    yvals = np.arange(len(sorted_mem)) / float(len(sorted_mem) - 1)
+
+    s1 = plt.plot(sorted_mem, yvals)
+
+    plt.ticklabel_format(style='plain')
+    #plt.ticklabel_format(axis='y', style='sci', scilimits=(-2,2))
+
+
+
+    plt.show()
+
+
     return 0
 
 
 # Todo - Complete full graph construction
 def main():
-
-    file = [files[3]]
+    print(files)
+    file = [files[0]]
     print(file)
+
     logOne = parseLog(file)
+
+    """
     logTime = parseLogInfo(folder)
     plt.xlim((0, 260))
     plt.ylim((0, 16000))
     # submitTime = extractSubTime(logOne, 1)
     # runTime = extractInfo(logOne, 3)
     jobSize = extractInfo(logOne, 4)
+    jobCanc = extractInfo(logOne, 10)
+    analyseJobCanc(jobCanc)
 
     # graphRunTime(runTime)
     graphJobSize(jobSize)
+    """
+    jobMem = extractInfo(logOne, 9)
+    analyseJobMem(jobMem)
+
 
 
 main()
