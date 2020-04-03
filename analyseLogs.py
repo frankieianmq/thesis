@@ -13,7 +13,7 @@ from collections import Counter
 import matplotlib.pyplot as plt
 import matplotlib.dates as md
 import numpy as np
-import datetime as dt
+from datetime import datetime
 import matplotlib.ticker as mtick
 
 
@@ -22,8 +22,11 @@ import matplotlib.ticker as mtick
 folder = 'G:\My Drive\Thesis\Workload Logs'
 
 files = grabPath(folder)
-
-
+startTime = parseLogInfo(files)
+d = datetime.utcfromtimestamp(int(startTime[0]))
+print(startTime[0])
+print(d.hour)
+print(d.strftime("%A"))
 # Checks if it is power of two
 # Source https://stackoverflow.com/questions/600293/how-to-check-if-a-number-is-a-power-of-2/600306#600306
 def is_power_of_two(n):
@@ -32,11 +35,9 @@ def is_power_of_two(n):
     return (n != 0) and (n & (n-1) == 0)
 
 
-
-
-# Extracts submit time: How long it takes
+# Extracts inter-arrival time: How long it takes
 # for next job to be submitted
-def extractSubTime(log, variable):
+def extractInterTime(log, variable):
     extractedLog = []
 
     for x in log:
@@ -54,6 +55,24 @@ def extractSubTime(log, variable):
     return extractedLog
 
 
+# Extract the arrival time from the logs
+# Adding the seconds to the unix start time
+# So we know what time it is
+def extractArrivalTime(log):
+    arrivalTime = []
+
+    for x in log:
+        logIndex = 0
+        store = []
+        for y in x:
+            for z in y:
+                time = int(z[1]) + int(startTime[logIndex])
+                store.append(time)
+        logIndex += 1
+        arrivalTime.append(store)
+    return arrivalTime
+
+
 # Extract Information about the specification
 # Different to extractSubTime as
 # it calculates the differences between previous submit
@@ -68,11 +87,11 @@ def extractInfo(log, variable):
 
 
 # Todo - Unfinished function
-# Graphs submit time
+# Graphs inter-arrival time
 # Unable to graph it in a meaningful way,
 # Will be doing Arrival rate as most papers utilise
 # arrival rate.
-def graphSubmitTime(submitTime):
+def graphInterTime(submitTime):
     count = Counter(submitTime)
     print(count)
     plt.bar(count.keys(), count.values())
@@ -83,6 +102,10 @@ def graphSubmitTime(submitTime):
     plt.show()
 
 
+def graphArrivalRate(logs):
+    return 0
+
+
 # Todo - Graph runtime for all four workloads
 def graphRunTime(runTime):
     count = Counter(runTime)
@@ -91,11 +114,7 @@ def graphRunTime(runTime):
     plt.show()
 
 
-# Todo - Graph Job Requirements (e.g. processors, memory usage)
-# Note - This may change to specific functions to graph each requirement
-def graphJobReq():
-    return 0
-
+# Graphs job size
 def graphJobSize(jobSize):
     count = Counter(jobSize)
 
@@ -104,11 +123,21 @@ def graphJobSize(jobSize):
     print(count)
     print(count.values())
     print(count.keys())
+    '''
     plt.bar(count.keys(), count.values())
+    plt.show()
+    '''
+    sorted_mem = np.sort(jobSize)
+
+    yvals = np.arange(len(sorted_mem)) / float(len(sorted_mem) - 1)
+
+    plt.plot(sorted_mem, yvals)
+
+    plt.ticklabel_format(style='plain')
     plt.show()
 
 
-#
+# Analyse job size: Understand
 def analyseJobSize(countedJobSize, range):
     remainder = {}
     jobCount = 0
@@ -147,6 +176,7 @@ def analyseJobSize(countedJobSize, range):
     print(remCount/jobCount, remEven/remCount, remOdd/remCount)
     print(remainder)
     print(jobCount)
+
     analyse = [inRange/jobCount, powerOfTwo/jobCount, even/jobCount, odd/jobCount]
 
     return analyse
@@ -167,53 +197,85 @@ def analyseJobCanc(canc):
     return analyse
 
 
+# Analysing the memory of jobs
+# Input is List of memory
+# Output = displays graph with cdfs of each
+# workload log
 def analyseJobMem(mem):
-    print(Counter(mem))
+    Counter = []
+    for item in mem:
+        store = []
+        sorted_mem = np.sort(item)
+        yvals = np.arange(len(sorted_mem)) / float(len(sorted_mem) - 1)
+        store.append(sorted_mem)
+        store.append(yvals)
+        Counter.append(store)
 
-    sorted_mem = np.sort(mem)
-
-    yvals = np.arange(len(sorted_mem)) / float(len(sorted_mem) - 1)
-
-    plt.plot(sorted_mem, yvals)
+    RICC = plt.plot(Counter[0][0], Counter[0][1], 'b-', label='RICC')
+    HPC2N = plt.plot(Counter[1][0], Counter[1][1], 'r--', label='HPC2N')
+    META = plt.plot(Counter[2][0], Counter[2][1], 'g--', label='META')
+    PIK = plt.plot(Counter[3][0], Counter[3][1], 'g-', label='PIK')
 
     plt.ticklabel_format(style='plain')
     plt.xlabel("Memory Size")
     plt.ylabel("% of jobs")
-
+    plt.legend(loc='upper right')
     plt.show()
 
 
 # Todo - Complete full graph construction
 def main():
     print(files)
-    file = [files[3]]
+    file = [files[1]]
     print(file)
 
-    logOne = parseLog(file)
+    RICC = parseLog([files[0]])
+    HP2CN = parseLog([files[1]])
+    META = parseLog([files[2]])
+    PIK = parseLog([files[3]])
+
+    allLogs = [RICC,HP2CN,META,PIK]
 
     """
     logTime = parseLogInfo(folder)
     plt.xlim((0, 260))
     plt.ylim((0, 16000))
-    # submitTime = extractSubTime(logOne, 1)
-    # runTime = extractInfo(logOne, 3)
-    # graphRunTime(runTime)
-
     
-
+    
+    # Job Size
+    jobSize = extractInfo(logOne, 4)
+    graphJobSize(jobSize)
+    
+    # Inter-arrival Time
+    jobInterTime = []
+    jobInterTime.append(extractInterTime(RICC, 1))
+    jobInterTime.append(extractInterTime(HP2CN, 1))
+    jobInterTime.append(extractInterTime(META, 1))
+    jobInterTime.append(extractInterTime(PIK, 1))
+    graphInterTime(jobInterTime)
     
     #Job Canc
     jobCanc = extractInfo(logOne, 10)
     analyseJobCanc(jobCanc)
     
-        # Job Memory
-    jobMem = extractInfo(logOne, 6)
+   
+    
+    
+       
+    # Arrival Rate
+    jobArrival = extractArrivalTime(allLogs)
+    graphArrivalRate(jobArrival)
+    """
+     # Job Memory
+    jobMem = []
+    jobMem.append(extractInfo(RICC, 9))
+    jobMem.append(extractInfo(HP2CN, 6))
+    jobMem.append(extractInfo(META, 6))
+    jobMem.append(extractInfo(PIK, 6))
+
     analyseJobMem(jobMem)
 
-    """
-    # Job Size
-    jobSize = extractInfo(logOne, 4)
-    graphJobSize(jobSize)
+
 
 
 main()
