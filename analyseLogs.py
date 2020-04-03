@@ -4,7 +4,7 @@ Variable List:
 1 - Submit Time
 3- Run time
 7 - Req Num of Processors
-9 - Req Mem
+6 - Used Mem / 9 - Req Mem
 10 - Status (1: Complete, 0: Failed, 5: cancelled)
 
 """
@@ -19,7 +19,7 @@ import matplotlib.ticker as mtick
 
 # Location can be either a folder location or
 # a list of logs
-folder = 'G:\My Drive\Session 1 2020\Workload Logs'
+folder = 'G:\My Drive\Thesis\Workload Logs'
 
 files = grabPath(folder)
 
@@ -27,6 +27,8 @@ files = grabPath(folder)
 # Checks if it is power of two
 # Source https://stackoverflow.com/questions/600293/how-to-check-if-a-number-is-a-power-of-2/600306#600306
 def is_power_of_two(n):
+    if n == 1:
+        return False
     return (n != 0) and (n & (n-1) == 0)
 
 
@@ -108,6 +110,7 @@ def graphJobSize(jobSize):
 
 #
 def analyseJobSize(countedJobSize, range):
+    remainder = {}
     jobCount = 0
     inRange = 0
     powerOfTwo = 0
@@ -118,19 +121,33 @@ def analyseJobSize(countedJobSize, range):
         jobCount += value
 
         # Check % of job within range
+        # Checks % of job that are power of 2
         if key <= range:
             inRange += value
 
-        # Check % of job even or odd
-        if key % 2 == 0:
-            even += value
-        else:
-            odd += value
-
-        # Checks % of job that are power of 2
         if is_power_of_two(key):
             powerOfTwo += value
-    analyse = [inRange, powerOfTwo, even, odd]
+        elif key != 1:
+            remainder[key] = value
+
+        # Check % of job even or odd
+
+    remCount = 0
+    remEven = 0
+    remOdd = 0
+
+    for key, value in remainder.items():
+        remCount += value
+
+        if key % 2 == 0:
+            remEven += value
+        else:
+            remOdd += value
+
+    print(remCount/jobCount, remEven/remCount, remOdd/remCount)
+    print(remainder)
+    print(jobCount)
+    analyse = [inRange/jobCount, powerOfTwo/jobCount, even/jobCount, odd/jobCount]
 
     return analyse
 
@@ -157,23 +174,19 @@ def analyseJobMem(mem):
 
     yvals = np.arange(len(sorted_mem)) / float(len(sorted_mem) - 1)
 
-    s1 = plt.plot(sorted_mem, yvals)
+    plt.plot(sorted_mem, yvals)
 
     plt.ticklabel_format(style='plain')
-    #plt.ticklabel_format(axis='y', style='sci', scilimits=(-2,2))
-
-
+    plt.xlabel("Memory Size")
+    plt.ylabel("% of jobs")
 
     plt.show()
-
-
-    return 0
 
 
 # Todo - Complete full graph construction
 def main():
     print(files)
-    file = [files[0]]
+    file = [files[3]]
     print(file)
 
     logOne = parseLog(file)
@@ -184,16 +197,23 @@ def main():
     plt.ylim((0, 16000))
     # submitTime = extractSubTime(logOne, 1)
     # runTime = extractInfo(logOne, 3)
-    jobSize = extractInfo(logOne, 4)
+    # graphRunTime(runTime)
+
+    
+
+    
+    #Job Canc
     jobCanc = extractInfo(logOne, 10)
     analyseJobCanc(jobCanc)
-
-    # graphRunTime(runTime)
-    graphJobSize(jobSize)
-    """
-    jobMem = extractInfo(logOne, 9)
+    
+        # Job Memory
+    jobMem = extractInfo(logOne, 6)
     analyseJobMem(jobMem)
 
+    """
+    # Job Size
+    jobSize = extractInfo(logOne, 4)
+    graphJobSize(jobSize)
 
 
 main()
