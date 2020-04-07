@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as md
 import numpy as np
 from datetime import datetime
+from pytz import timezone
 import matplotlib.ticker as mtick
 
 
@@ -22,8 +23,9 @@ import matplotlib.ticker as mtick
 folder = 'G:\My Drive\Thesis\Workload Logs'
 
 files = grabPath(folder)
-startTime = parseLogInfo(files)
-d = datetime.utcfromtimestamp(int(startTime[0]))
+startTime = parseLogInfo(files, "UnixStartTime:")
+timeZone = parseLogInfo(files, "TimeZoneString:")
+d = datetime.fromtimestamp(int(startTime[0]), tz=timezone(timeZone[0]))
 print(startTime[0])
 print(d.hour)
 print(d.strftime("%A"))
@@ -33,6 +35,19 @@ def is_power_of_two(n):
     if n == 1:
         return False
     return (n != 0) and (n & (n-1) == 0)
+
+
+def switch_day(day):
+    switcher = {
+        "Monday": 1,
+        "Tuesday": 2,
+        "Wednesday": 3,
+        "Thursday": 4,
+        "Friday": 5,
+        "Saturday": 6,
+        "Sunday": 7
+    }
+    return switcher.get(day)
 
 
 # Extracts inter-arrival time: How long it takes
@@ -58,7 +73,9 @@ def extractInterTime(log, variable):
 # Extract the arrival time from the logs
 # Adding the seconds to the unix start time
 # So we know what time it is
-def extractArrivalTime(log):
+# Variable settings, extracts info
+# 1 = hour, 2 = day
+def extractArrivalTime(log, variable):
     arrivalTime = []
 
     for x in log:
@@ -67,7 +84,11 @@ def extractArrivalTime(log):
         for y in x:
             for z in y:
                 time = int(z[1]) + int(startTime[logIndex])
-                store.append(time)
+                spec = datetime.fromtimestamp(time, tz=timezone(timeZone[logIndex]))
+                if variable == 1:
+                    store.append(spec.hour)
+                else:
+                    store.append(switch_day(spec.strftime("%A")))
         logIndex += 1
         arrivalTime.append(store)
     return arrivalTime
@@ -103,7 +124,15 @@ def graphInterTime(submitTime):
 
 
 def graphArrivalRate(logs):
-    return 0
+    CounterList = []
+    for item in logs:
+        CounterList.append(Counter(item))
+
+    for x in range(len(CounterList)):
+        plt.figure()
+        plt.bar(CounterList[x].keys(), CounterList[x].values())
+
+    plt.show()
 
 
 # Todo - Graph runtime for all four workloads
@@ -219,7 +248,44 @@ def analyseJobMem(mem):
     plt.ticklabel_format(style='plain')
     plt.xlabel("Memory Size")
     plt.ylabel("% of jobs")
-    plt.legend(loc='upper right')
+    plt.legend(loc='lower right')
+    plt.xscale("log")
+    plt.ylim(-0.05, 1)
+    plt.show()
+
+
+# Analyse total memory usage. Unlike function analyseJobMem,
+# this function is used to calculate and analyse the total memory used for each job
+# Each memory logged is only for per core
+def analyseTotalMem(mem, core):
+    totalMemList = []
+    for i in range(len(mem)):
+        store =[]
+        for index in range(len(mem[i])):
+            store.append(int(mem[i][index]) * int(core[i][index]))
+        totalMemList.append(store)
+
+    Counter = []
+    for item in totalMemList:
+        store = []
+        sorted_mem = np.sort(item)
+        yvals = np.arange(len(sorted_mem)) / float(len(sorted_mem) - 1)
+        store.append(sorted_mem)
+        store.append(yvals)
+        Counter.append(store)
+
+    RICC = plt.plot(Counter[0][0], Counter[0][1], 'b-', label='RICC')
+    HPC2N = plt.plot(Counter[1][0], Counter[1][1], 'r--', label='HPC2N')
+    META = plt.plot(Counter[2][0], Counter[2][1], 'g--', label='META')
+    PIK = plt.plot(Counter[3][0], Counter[3][1], 'g-', label='PIK')
+
+    plt.ticklabel_format(style='plain')
+    plt.xlabel("Memory Size")
+    plt.ylabel("% of jobs")
+    plt.legend(loc='lower right')
+    plt.xscale("log")
+    plt.ylim(-0.05, 1)
+
     plt.show()
 
 
@@ -234,13 +300,8 @@ def main():
     META = parseLog([files[2]])
     PIK = parseLog([files[3]])
 
-    allLogs = [RICC,HP2CN,META,PIK]
-
+    allLogs = [RICC, HP2CN, META, PIK]
     """
-    logTime = parseLogInfo(folder)
-    plt.xlim((0, 260))
-    plt.ylim((0, 16000))
-    
     
     # Job Size
     jobSize = extractInfo(logOne, 4)
@@ -258,15 +319,7 @@ def main():
     jobCanc = extractInfo(logOne, 10)
     analyseJobCanc(jobCanc)
     
-   
-    
-    
-       
-    # Arrival Rate
-    jobArrival = extractArrivalTime(allLogs)
-    graphArrivalRate(jobArrival)
-    """
-     # Job Memory
+    # Job Memory
     jobMem = []
     jobMem.append(extractInfo(RICC, 9))
     jobMem.append(extractInfo(HP2CN, 6))
@@ -275,7 +328,31 @@ def main():
 
     analyseJobMem(jobMem)
 
+    
+    # Total Job Mem
+    jobSize = []
+    jobMem = []
+    jobMem.append(extractInfo(RICC, 9))
+    jobMem.append(extractInfo(HP2CN, 6))
+    jobMem.append(extractInfo(META, 6))
+    jobMem.append(extractInfo(PIK, 6))
+    jobSize.append(extractInfo(RICC, 4))
+    jobSize.append(extractInfo(HP2CN, 4))
+    jobSize.append(extractInfo(META, 4))
+    jobSize.append(extractInfo(PIK, 4))
+    analyseTotalMem(jobMem, jobSize)
+    
 
+    # Arrival Rate Hour
+    jobArrival = extractArrivalTime(allLogs,1)
+    graphArrivalRate(jobArrival)    
+
+
+    """
+
+     # Arrival Rate Day
+    jobArrival = extractArrivalTime(allLogs, 2)
+    graphArrivalRate(jobArrival)
 
 
 main()

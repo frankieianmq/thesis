@@ -34,7 +34,7 @@ def grabPath(path):
         list = [(dirpath + "\\" + y) for y in filenames]
     return list
 
-def parseLogInfo(files):
+def parseLogInfo(files, variable):
     logList = []
 
     if type(files) == str:
@@ -48,9 +48,10 @@ def parseLogInfo(files):
             while count == 0:
                 if line[0] == ';':
                     splitLine = line.split()
-                    if len(splitLine) > 1 and splitLine[1] == "UnixStartTime:":
+                    if len(splitLine) > 1 and splitLine[1] == variable:
                         logList.append(splitLine[2])
                 else:
                     count = 1
                 line = fp.readline()
     return logList
+
