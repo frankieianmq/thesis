@@ -55,3 +55,9 @@ def parseLogInfo(files, variable):
                 line = fp.readline()
     return logList
 
+def grabName(path):
+    pth = path
+    list = []
+    for (dirpath, dirnames, filenames) in os.walk(pth):
+        list = [(y.split('-')[0]) for y in filenames]
+    return list

@@ -8,27 +8,32 @@ Variable List:
 10 - Status (1: Complete, 0: Failed, 5: cancelled)
 
 """
-from parse_logs import parseLog, grabPath, parseLogInfo
+from parse_logs import parseLog, grabPath, parseLogInfo, grabName
 from collections import Counter
 import matplotlib.pyplot as plt
+import scipy
+import scipy.stats
 import matplotlib.dates as md
 import numpy as np
 from datetime import datetime
 from pytz import timezone
 import matplotlib.ticker as mtick
+from scipy.optimize import curve_fit
 
 
 # Location can be either a folder location or
 # a list of logs
-folder = 'G:\My Drive\Thesis\Workload Logs'
+folder = 'G:\My Drive\Thesis\Workload Log - Method 2\\Utilisation\High'
 
 files = grabPath(folder)
+fileNames = grabName(folder)
+graphTypes = ['b-', 'r--', 'g--', 'g-']
+
 startTime = parseLogInfo(files, "UnixStartTime:")
 timeZone = parseLogInfo(files, "TimeZoneString:")
 d = datetime.fromtimestamp(int(startTime[0]), tz=timezone(timeZone[0]))
-print(startTime[0])
-print(d.hour)
-print(d.strftime("%A"))
+
+
 # Checks if it is power of two
 # Source https://stackoverflow.com/questions/600293/how-to-check-if-a-number-is-a-power-of-2/600306#600306
 def is_power_of_two(n):
@@ -56,16 +61,21 @@ def extractInterTime(log, variable):
     extractedLog = []
 
     for x in log:
-        oldTime = 0
-        oldCalc = 0
+        logIndex = 0
+        store = []
         for y in x:
-            time = int(y[variable])
-            if oldTime == time:
-                extractedLog.append(oldCalc)
-            else:
-                extractedLog.append(time - oldTime)
-                oldCalc = time - oldTime
-                oldTime = time
+            oldTime = 0
+            oldCalc = 0
+            for z in y:
+                time = int(z[variable])
+                if oldTime == time:
+                    store.append(oldCalc)
+                else:
+                    store.append(time - oldTime)
+                    oldCalc = time - oldTime
+                    oldTime = time
+        logIndex += 1
+        extractedLog.append(store)
 
     return extractedLog
 
@@ -102,8 +112,22 @@ def extractInfo(log, variable):
     extractedLog = []
 
     for x in log:
+
         for y in x:
             extractedLog.append(int(y[variable]))
+    return extractedLog
+
+def extractMultiLog(logs, variable):
+    extractedLog = []
+
+    for x in logs:
+        logIndex = 0
+        store = []
+        for y in x:
+            for z in y:
+                store.append(int(z[variable]))
+        logIndex += 1
+        extractedLog.append(store)
     return extractedLog
 
 
@@ -112,14 +136,27 @@ def extractInfo(log, variable):
 # Unable to graph it in a meaningful way,
 # Will be doing Arrival rate as most papers utilise
 # arrival rate.
-def graphInterTime(submitTime):
-    count = Counter(submitTime)
-    print(count)
-    plt.bar(count.keys(), count.values())
-    plt.xlim((0, 3000))
-    plt.ylim((0, 3000))
-    plt.show()
-    plt.hist(submitTime, bins=10)
+def graphInterTime(interTimeList):
+    Counter = []
+    for item in interTimeList:
+        store = []
+        sorted_inter = np.sort(item)
+        yvals = np.arange(len(sorted_inter)) / float(len(sorted_inter) - 1)
+        store.append(sorted_inter)
+        store.append(yvals)
+        Counter.append(store)
+
+
+    for index in range(len(Counter)):
+        plt.plot(Counter[index][0], Counter[index][1], graphTypes[index], label=fileNames[index])
+
+
+    plt.ticklabel_format(style='plain')
+    plt.xlabel("Inter-arrival Time")
+    plt.ylabel("% of jobs")
+    plt.legend(loc='lower right')
+    plt.xscale("log")
+    plt.ylim(-0.05, 1)
     plt.show()
 
 
@@ -137,9 +174,24 @@ def graphArrivalRate(logs):
 
 # Todo - Graph runtime for all four workloads
 def graphRunTime(runTime):
-    count = Counter(runTime)
-    print(count)
-    plt.bar(count.keys(), count.values())
+    Counter = []
+    for item in runTime:
+        store = []
+        sorted_runTime = np.sort(item)
+        yvals = np.arange(len(sorted_runTime)) / float(len(sorted_runTime) - 1)
+        store.append(sorted_runTime)
+        store.append(yvals)
+        Counter.append(store)
+
+    for index in range(len(Counter)):
+        plt.plot(Counter[index][0], Counter[index][1], graphTypes[index], label=fileNames[index])
+
+    plt.ticklabel_format(style='plain')
+    plt.xlabel("Run time")
+    plt.ylabel("% of jobs")
+    plt.legend(loc='lower right')
+    plt.xscale("log")
+    plt.ylim(-0.05, 1)
     plt.show()
 
 
@@ -240,10 +292,8 @@ def analyseJobMem(mem):
         store.append(yvals)
         Counter.append(store)
 
-    RICC = plt.plot(Counter[0][0], Counter[0][1], 'b-', label='RICC')
-    HPC2N = plt.plot(Counter[1][0], Counter[1][1], 'r--', label='HPC2N')
-    META = plt.plot(Counter[2][0], Counter[2][1], 'g--', label='META')
-    PIK = plt.plot(Counter[3][0], Counter[3][1], 'g-', label='PIK')
+    for index in range(len(Counter)):
+        plt.plot(Counter[index][0], Counter[index][1], graphTypes[index], label=fileNames[index])
 
     plt.ticklabel_format(style='plain')
     plt.xlabel("Memory Size")
@@ -274,10 +324,8 @@ def analyseTotalMem(mem, core):
         store.append(yvals)
         Counter.append(store)
 
-    RICC = plt.plot(Counter[0][0], Counter[0][1], 'b-', label='RICC')
-    HPC2N = plt.plot(Counter[1][0], Counter[1][1], 'r--', label='HPC2N')
-    META = plt.plot(Counter[2][0], Counter[2][1], 'g--', label='META')
-    PIK = plt.plot(Counter[3][0], Counter[3][1], 'g-', label='PIK')
+    for index in range(len(Counter)):
+        plt.plot(Counter[index][0], Counter[index][1], graphTypes[index], label=fileNames[index])
 
     plt.ticklabel_format(style='plain')
     plt.xlabel("Memory Size")
@@ -292,67 +340,49 @@ def analyseTotalMem(mem, core):
 # Todo - Complete full graph construction
 def main():
     print(files)
-    file = [files[1]]
-    print(file)
 
-    RICC = parseLog([files[0]])
-    HP2CN = parseLog([files[1]])
-    META = parseLog([files[2]])
-    PIK = parseLog([files[3]])
-
-    allLogs = [RICC, HP2CN, META, PIK]
+    allLogs = [parseLog([x]) for x in files]
     """
     
     # Job Size
     jobSize = extractInfo(logOne, 4)
     graphJobSize(jobSize)
     
-    # Inter-arrival Time
-    jobInterTime = []
-    jobInterTime.append(extractInterTime(RICC, 1))
-    jobInterTime.append(extractInterTime(HP2CN, 1))
-    jobInterTime.append(extractInterTime(META, 1))
-    jobInterTime.append(extractInterTime(PIK, 1))
-    graphInterTime(jobInterTime)
+    
     
     #Job Canc
     jobCanc = extractInfo(logOne, 10)
     analyseJobCanc(jobCanc)
     
     # Job Memory
-    jobMem = []
-    jobMem.append(extractInfo(RICC, 9))
-    jobMem.append(extractInfo(HP2CN, 6))
-    jobMem.append(extractInfo(META, 6))
-    jobMem.append(extractInfo(PIK, 6))
-
+    jobMem = extractMultiLog(allLogs, 6)
     analyseJobMem(jobMem)
 
     
     # Total Job Mem
-    jobSize = []
-    jobMem = []
-    jobMem.append(extractInfo(RICC, 9))
-    jobMem.append(extractInfo(HP2CN, 6))
-    jobMem.append(extractInfo(META, 6))
-    jobMem.append(extractInfo(PIK, 6))
-    jobSize.append(extractInfo(RICC, 4))
-    jobSize.append(extractInfo(HP2CN, 4))
-    jobSize.append(extractInfo(META, 4))
-    jobSize.append(extractInfo(PIK, 4))
+    jobSize = extractMultiLog(allLogs, 4)
+    jobMem = extractMultiLog(allLogs, 6)
     analyseTotalMem(jobMem, jobSize)
     
-
-    # Arrival Rate Hour
-    jobArrival = extractArrivalTime(allLogs,1)
-    graphArrivalRate(jobArrival)    
-
-
-    """
-
-     # Arrival Rate Day
-    jobArrival = extractArrivalTime(allLogs, 2)
+    # Inter-arrival Time
+    jobInterTime = extractInterTime(allLogs, 1)
+    graphInterTime(jobInterTime)
+    
+    # Arrival Rate Daily
+    jobArrival = extractArrivalTime(allLogs, 1)
     graphArrivalRate(jobArrival)
 
+    # Arrival Rate Weekly
+    jobArrival = extractArrivalTime(allLogs, 2)
+    graphArrivalRate(jobArrival)
+    
+     # Runtime
+    jobRunTime = extractMultiLog(allLogs, 3)
+    graphRunTime(jobRunTime)
+    """
 
-main()
+
+
+
+if __name__ == "__main__":
+    main()
