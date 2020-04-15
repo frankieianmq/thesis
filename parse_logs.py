@@ -31,7 +31,7 @@ def grabPath(path):
     pth = path
     list = []
     for (dirpath, dirnames, filenames) in os.walk(pth):
-        list = [(dirpath + "\\" + y) for y in filenames]
+        list = [(os.path.join(dirpath, y)) for y in filenames]
     return list
 
 def parseLogInfo(files, variable):

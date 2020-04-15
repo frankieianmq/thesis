@@ -23,7 +23,7 @@ from scipy.optimize import curve_fit
 
 # Location can be either a folder location or
 # a list of logs
-folder = 'G:\My Drive\Thesis\Workload Log - Method 2\\Utilisation\\High'
+folder = 'G:\My Drive\Thesis\Workload Logs'
 
 files = grabPath(folder)
 fileNames = grabName(folder)
