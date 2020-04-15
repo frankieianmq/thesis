@@ -2,6 +2,8 @@
 This python file will parse the log(s) of workloads and extract the data
 """
 import os
+from pathlib import Path
+
 
 # Function will parse logs
 # Returns log as a list
@@ -31,7 +33,7 @@ def grabPath(path):
     pth = path
     list = []
     for (dirpath, dirnames, filenames) in os.walk(pth):
-        list = [(os.path.join(dirpath, y)) for y in filenames]
+        list = [Path(dirpath)/y for y in filenames]
     return list
 
 def parseLogInfo(files, variable):
