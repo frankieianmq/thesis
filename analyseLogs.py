@@ -31,7 +31,7 @@ graphTypes = ['b-', 'r--', 'g--', 'g-']
 
 startTime = parseLogInfo(files, "UnixStartTime:")
 timeZone = parseLogInfo(files, "TimeZoneString:")
-d = datetime.fromtimestamp(int(startTime[0]), tz=timezone(timeZone[0]))
+#d = datetime.fromtimestamp(int(startTime[0]), tz=timezone(timeZone[0]))
 
 
 # Checks if it is power of two
