@@ -1,7 +1,6 @@
-import scipy
+# Import the necessary libraries
 import numpy as np
-import scipy.stats
-
+import scipy.stats as sts
 
 n = 100
 x = np.linspace(-4,4,n)

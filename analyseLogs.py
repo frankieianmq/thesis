@@ -23,7 +23,7 @@ from scipy.optimize import curve_fit
 
 # Location can be either a folder location or
 # a list of logs
-folder = 'G:\My Drive\Thesis\Workload Log - Method 2\\Utilisation\High'
+folder = 'G:\My Drive\Thesis\Workload Log - Method 2\\Utilisation\\High'
 
 files = grabPath(folder)
 fileNames = grabName(folder)
@@ -67,13 +67,14 @@ def extractInterTime(log, variable):
             oldTime = 0
             oldCalc = 0
             for z in y:
-                time = int(z[variable])
-                if oldTime == time:
-                    store.append(oldCalc)
-                else:
-                    store.append(time - oldTime)
-                    oldCalc = time - oldTime
-                    oldTime = time
+                if len(z) != 0:
+                    time = int(z[variable])
+                    if oldTime == time:
+                        store.append(oldCalc)
+                    else:
+                        store.append(time - oldTime)
+                        oldCalc = time - oldTime
+                        oldTime = time
         logIndex += 1
         extractedLog.append(store)
 
@@ -112,9 +113,9 @@ def extractInfo(log, variable):
     extractedLog = []
 
     for x in log:
-
         for y in x:
-            extractedLog.append(int(y[variable]))
+            if len(y) != 0:
+                extractedLog.append(int(y[variable]))
     return extractedLog
 
 def extractMultiLog(logs, variable):
@@ -125,7 +126,8 @@ def extractMultiLog(logs, variable):
         store = []
         for y in x:
             for z in y:
-                store.append(int(z[variable]))
+                if len(z) != 0:
+                    store.append(int(z[variable]))
         logIndex += 1
         extractedLog.append(store)
     return extractedLog
@@ -380,7 +382,9 @@ def main():
     jobRunTime = extractMultiLog(allLogs, 3)
     graphRunTime(jobRunTime)
     """
-
+    jobMem = [extractInfo(allLogs[0],6), extractInfo(allLogs[1],9), extractInfo(allLogs[2],6)]
+    # Job Memory
+    analyseJobMem(jobMem)
 
 
 
