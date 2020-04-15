@@ -33,6 +33,7 @@ def grabPath(path):
     pth = path
     list = []
     for (dirpath, dirnames, filenames) in os.walk(pth):
+        print(Path(dirpath))
         list = [Path(dirpath)/y for y in filenames]
     return list
 
