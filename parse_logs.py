@@ -52,7 +52,7 @@ def parseLogInfo(files, variable):
                 if line[0] == ';':
                     splitLine = line.split()
                     if len(splitLine) > 1 and splitLine[1] == variable:
-                        logList.append(splitLine[2])
+                        logList.append(splitLine[2:])
                 else:
                     count = 1
                 line = fp.readline()
