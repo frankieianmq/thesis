@@ -1,12 +1,6 @@
-# Import the necessary libraries
-import numpy as np
-import scipy.stats as sts
+mydict = { 'a': 0.01, 'b': 0.02, 'c':0.001, 'd':0.1}
 
-n = 100
-x = np.linspace(-4,4,n)
-f = lambda x,mu,sigma: scipy.stats.norm(mu,sigma).cdf(x)
 
-data = f(x,0.2,1) + 0.05*np.random.randn(n)
-print(data)
+mydict = {key:value for key, value in sorted(mydict.items(), key=lambda item: item[1])}
 
-mu,sigma = scipy.optimize.curve_fit(f,x,c)[0]
+print(mydict)

@@ -19,6 +19,8 @@ from datetime import datetime
 from pytz import timezone
 import matplotlib.ticker as mtick
 from scipy.optimize import curve_fit
+from openpyxl import Workbook
+
 
 
 # Location can be either a folder location or
@@ -27,10 +29,12 @@ folder = 'G:\My Drive\Thesis\Workload Logs'
 
 files = grabPath(folder)
 fileNames = grabName(folder)
-graphTypes = ['b-', 'r--', 'g--', 'g-']
+graphTypes = ['b-', 'r--', 'g--', 'g-','r-', ]
 
 startTime = parseLogInfo(files, "UnixStartTime:")
 timeZone = parseLogInfo(files, "TimeZoneString:")
+endTime = parseLogInfo(files, "EndTime:")
+print(endTime)
 #d = datetime.fromtimestamp(int(startTime[0]), tz=timezone(timeZone[0]))
 
 
@@ -59,27 +63,117 @@ def switch_day(day):
 # for next job to be submitted
 def extractInterTime(log, variable):
     extractedLog = []
+    for x in log:
+        store = []
+        for y in x:
+            oldTime = 0
+            for z in y:
+                if len(z) != 0:
+                    time = int(z[variable])
+                    if oldTime != time:
+                        store.append(time - oldTime)
+                        oldCalc = time - oldTime
+                        oldTime = time
+        extractedLog.append(store)
+    return extractedLog
+
+
+# Extracts the BOT (Bag of Tasks)
+def extractBOT(log, variable):
+    bot = []
+    jobCount = []
+
+    for x in log:
+        storeSize = 0
+        store = []
+        for y in x:
+            oldTime = 0
+            botCount = 0
+            for z in y:
+                if len(z) != 0:
+                    time = int(z[variable])
+                    storeSize += 1
+
+                    if oldTime == time:
+                        botCount += 1
+                    else:
+                        if botCount > 0:
+                            store.append(botCount)
+                            botCount = 0
+                        oldTime = time
+        bot.append(store)
+        jobCount.append(storeSize)
+    return bot
+
+
+def whatMonths(log):
+    arrivalTime = []
+
+    for x in log:
+        logIndex = 0
+        store = {}
+        for y in x:
+            for z in y:
+                time = int(z[1]) + int(startTime[logIndex])
+                spec = datetime.fromtimestamp(time, tz=timezone(timeZone[logIndex]))
+                if store.get(spec.month) == None:
+                    store[spec.month] = 0
+        logIndex += 1
+        arrivalTime.append(store)
+    return arrivalTime
+
+
+def extractMonths(log, variable):
+    arrivalTime = []
+
+    for x in log:
+        logIndex = 0
+        store = {}
+        for y in x:
+            for z in y:
+                time = int(z[1]) + int(startTime[logIndex])
+                spec = datetime.fromtimestamp(time, tz=timezone(timeZone[logIndex]))                    
+                if store.get(spec.month) == None:
+                    store[spec.month] = [z[variable]]
+                else:
+                    list = store.get(spec.month)
+                    list.append(z[variable])
+                    store.update({spec.month: list})
+        logIndex += 1
+        arrivalTime.append(store)
+    return arrivalTime
+
+
+def extractMonth(log, variable, month):
+    extracted = []
 
     for x in log:
         logIndex = 0
         store = []
         for y in x:
-            oldTime = 0
-            oldCalc = 0
             for z in y:
-                if len(z) != 0:
-                    time = int(z[variable])
-                    if oldTime == time:
-                        store.append(oldCalc)
-                    else:
-                        store.append(time - oldTime)
-                        oldCalc = time - oldTime
-                        oldTime = time
+                time = int(z[1]) + int(startTime[logIndex][0])
+                spec = datetime.fromtimestamp(time, tz=timezone(timeZone[logIndex][0]))
+                if spec.month == month:
+                    store.append(z[variable])
         logIndex += 1
-        extractedLog.append(store)
+        extracted.append(store)
+    return extracted
 
-    return extractedLog
-
+def extractDay(log,variable, month):
+    extracted = []
+    logIndex = 0
+    for x in log:
+        store = []
+        for y in x:
+            for z in y:
+                time = int(z[1]) + int(startTime[logIndex][0])
+                spec = datetime.fromtimestamp(time, tz=timezone(timeZone[logIndex][0]))
+                if spec.month == month and spec.day == 20:
+                    store.append(z[variable])
+        logIndex += 1
+        extracted.append(store)
+    return extracted
 
 # Extract the arrival time from the logs
 # Adding the seconds to the unix start time
@@ -88,9 +182,9 @@ def extractInterTime(log, variable):
 # 1 = hour, 2 = day
 def extractArrivalTime(log, variable):
     arrivalTime = []
+    logIndex = 0
 
     for x in log:
-        logIndex = 0
         store = []
         for y in x:
             for z in y:
@@ -139,18 +233,20 @@ def extractMultiLog(logs, variable):
 # Will be doing Arrival rate as most papers utilise
 # arrival rate.
 def graphInterTime(interTimeList):
-    Counter = []
+    calcList = []
     for item in interTimeList:
         store = []
+        count = Counter(item)
+        print(count.most_common(10))
         sorted_inter = np.sort(item)
         yvals = np.arange(len(sorted_inter)) / float(len(sorted_inter) - 1)
         store.append(sorted_inter)
         store.append(yvals)
-        Counter.append(store)
+        calcList.append(store)
 
 
-    for index in range(len(Counter)):
-        plt.plot(Counter[index][0], Counter[index][1], graphTypes[index], label=fileNames[index])
+    for index in range(len(calcList)):
+        plt.plot(calcList[index][0], calcList[index][1], graphTypes[index], label=fileNames[index])
 
 
     plt.ticklabel_format(style='plain')
@@ -158,18 +254,24 @@ def graphInterTime(interTimeList):
     plt.ylabel("% of jobs")
     plt.legend(loc='lower right')
     plt.xscale("log")
-    plt.ylim(-0.05, 1)
+    plt.xlim(1,100000)
+    plt.ylim(0, 1)
     plt.show()
 
 
 def graphArrivalRate(logs):
     CounterList = []
     for item in logs:
-        CounterList.append(Counter(item))
+        length = len(item)
+        count = Counter(item)
+        print(count)
+        store = [(x/length * 100) for x in count.values()]
+        CounterList.append([count.keys(), store])
+
 
     for x in range(len(CounterList)):
         plt.figure()
-        plt.bar(CounterList[x].keys(), CounterList[x].values())
+        plt.bar(CounterList[x][0], CounterList[x][1])
 
     plt.show()
 
@@ -186,13 +288,12 @@ def graphRunTime(runTime):
         Counter.append(store)
 
     for index in range(len(Counter)):
-        plt.plot(Counter[index][0], Counter[index][1], graphTypes[index], label=fileNames[index])
+        plt.plot(Counter[index][0], Counter[index][1], graphTypes[index], label=index)
 
-    plt.ticklabel_format(style='plain')
+    #plt.ticklabel_format(style='plain')
     plt.xlabel("Run time")
     plt.ylabel("% of jobs")
     plt.legend(loc='lower right')
-    plt.xscale("log")
     plt.ylim(-0.05, 1)
     plt.show()
 
@@ -255,28 +356,31 @@ def analyseJobSize(countedJobSize, range):
             remEven += value
         else:
             remOdd += value
-
+    '''
     print(remCount/jobCount, remEven/remCount, remOdd/remCount)
     print(remainder)
     print(jobCount)
-
+    '''
     analyse = [inRange/jobCount, powerOfTwo/jobCount, even/jobCount, odd/jobCount]
 
     return analyse
 
 # Todo - Graph Job Cancellations
 def analyseJobCanc(canc):
-    count = Counter(canc)
-
-    jobCount = 0
-
-    for x in count.values():
-        jobCount += x
+    count = []
+    for list in canc:
+        count.append(Counter(list))
 
 
-    print(count)
-    analyse = round(count[5] / jobCount, 3)
-    print(analyse)
+    jobCount = []
+
+    for x in count:
+        jobCount.append(sum(x.values()))
+
+
+    analyse = []
+    for x in range(len(count)):
+        analyse.append(round(count[x][5] / jobCount[x], 3)*100)
     return analyse
 
 
@@ -285,17 +389,19 @@ def analyseJobCanc(canc):
 # Output = displays graph with cdfs of each
 # workload log
 def analyseJobMem(mem):
-    Counter = []
+    listMem = []
     for item in mem:
         store = []
         sorted_mem = np.sort(item)
+        print(Counter(item).most_common(10))
         yvals = np.arange(len(sorted_mem)) / float(len(sorted_mem) - 1)
         store.append(sorted_mem)
         store.append(yvals)
-        Counter.append(store)
+        listMem.append(store)
 
-    for index in range(len(Counter)):
-        plt.plot(Counter[index][0], Counter[index][1], graphTypes[index], label=fileNames[index])
+
+    for index in range(len(listMem)):
+        plt.plot(listMem[index][0], listMem[index][1], graphTypes[index], label=fileNames[index])
 
     plt.ticklabel_format(style='plain')
     plt.xlabel("Memory Size")
@@ -305,6 +411,15 @@ def analyseJobMem(mem):
     plt.ylim(-0.05, 1)
     plt.show()
 
+
+def writeToExcel(log, type, workload):
+    filename = type + workload + '.xlsx'
+    workbook = Workbook()
+    sheet = workbook.active
+    for index in range(len(log)):
+        sheet['A' + str(index+1)] = log[index]
+    workbook.save(filename = filename)
+    
 
 # Analyse total memory usage. Unlike function analyseJobMem,
 # this function is used to calculate and analyse the total memory used for each job
@@ -350,8 +465,6 @@ def main():
     jobSize = extractInfo(logOne, 4)
     graphJobSize(jobSize)
     
-    
-    
     #Job Canc
     jobCanc = extractInfo(logOne, 10)
     analyseJobCanc(jobCanc)
@@ -360,7 +473,6 @@ def main():
     jobMem = extractMultiLog(allLogs, 6)
     analyseJobMem(jobMem)
 
-    
     # Total Job Mem
     jobSize = extractMultiLog(allLogs, 4)
     jobMem = extractMultiLog(allLogs, 6)
@@ -377,14 +489,21 @@ def main():
     # Arrival Rate Weekly
     jobArrival = extractArrivalTime(allLogs, 2)
     graphArrivalRate(jobArrival)
-    
-     # Runtime
-    jobRunTime = extractMultiLog(allLogs, 3)
-    graphRunTime(jobRunTime)
+   
     """
-    jobMem = [extractInfo(allLogs[0],6), extractInfo(allLogs[1],9), extractInfo(allLogs[2],6)]
-    # Job Memory
-    analyseJobMem(jobMem)
+
+
+    # Runtime
+    jobRunTime = extractMultiLog(allLogs, 3)
+    cnt = Counter(jobRunTime[0])
+
+    cnt50 = {k:v for k,v in cnt.items() if k < 50000}
+    cnt5 = {k:v for k,v in cnt50.items() if v > 4}
+    cnt50d = [k for k,v in cnt50.items() for x in range(v)]
+    cnt50e = [k for k,v in cnt5.items() for x in range(v)]
+    graphRunTime([cnt50d, cnt50e])
+
+    plt.show()
 
 
 
