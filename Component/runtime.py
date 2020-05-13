@@ -10,17 +10,26 @@ import scipy
 import scipy.stats
 import matplotlib.dates as md
 import numpy as np
+import numpy.random as ra
 from datetime import datetime
 from pytz import timezone
 import matplotlib.ticker as mtick
+import scipy.interpolate as interpolate
 
 param = [-420.52, 1640.97]
+size = 1
+num_bins = 25
 
-def genRunTime():
-    r = scipy.stats.gilbrat.rvs(loc= param[0], scale = param[1], size= 100)
+def genRunTime(min, max):
+    #Obtain PDF and linespace for generation
+    rX = np.linspace(min, max, max-min)
+    rP = scipy.stats.gilbrat.pdf(rX, loc= param[0], scale = param[1])
 
-    print(r)
+    # Obtain Samples, rounding them up
+    samples = np.random.choice(rX, size=size, p=rP / np.sum(rP))
+    rounded = [int(round(x)) for x in samples]
 
-    plt.show()
+    return rounded[0]
 
-genRunTime()
+if __name__ == "__main__":
+    print(genRunTime(1801,100000))

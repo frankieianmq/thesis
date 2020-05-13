@@ -1,5 +1,14 @@
 import xml.etree.ElementTree as ET
 import random
+import sys
+
+sys.path.insert(0, 'Component')
+
+from Component import runtime as rt
+from Component import submitTime as st
+from Component import memReq as mr
+from Component import coreReq as cr
+
 
 config_file = "configs/config_simple0.xml"
 avgLowTime = 3600 + random.randint(0,1000) % 43200
@@ -43,6 +52,48 @@ def grab_jobTypes():
     for type_tag in root.iter("job"):
         jobTypes.append(type_tag.attrib)
     return jobTypes
+
+def GetNextLoadDuration(lState):
+    lDuration = 0
+    if lState == 0:
+        lDuration = avgLowTime
+    elif lState == 4:
+        lDuration = avgHighTime
+    else:
+        if avgLowTime < avgHighTime:
+            lDuration = avgLowTime
+        else:
+            lDuration = avgHighTime
+    return lDuration
+
+
+def CalcTotalCoreCount(child):
+    root = ET.parse(config_file).getroot()
+    total = 0
+
+    for type_tag in root.iter(child):
+        total += int(type_tag.get("coreCount"))
+
+    return total
+
+
+# Goes through the list, and calculate
+def CalcCoresInUse(submitTime, jobList, jID):
+
+    if len(jobList) == 0:
+        return 0
+
+    coresInUse = 0
+
+    for x in range(jID):
+        job = jobList[x]
+        #print(job)
+        completionTime = job["submitTime"] + job["actRunTime"]
+
+        if completionTime > submitTime:
+            coresInUse += job["resReq"]["cores"]
+
+    return coresInUse
 
 # Grabs the job type based on the a random integer
 # E.g if "r" is 30, it will get the job type when the
@@ -99,24 +150,89 @@ def main():
     targetLoad = avgLowTime #workloadInfo.avgLowTime
     loadOffset = 10
     totalCores = CalcTotalCoreCount("server");
+    category = mr.pickDist(totalCores)
 
     jobsList = []
+    jID = 0
+    while jID < maxJobCount and submitTime < simEndTime:
+        job = {}
 
-    job = {}
+        # Generate a submit time that is not the same
+        submitTime += st.genSubmitTime()
 
-    # Generate runtimes based on job type
-    jType = GetJobType(jobTypes)
-    job["type"] = jType
+        if submitTime > curLoadETime and ((lDir > 0 and curLoad >= targetLoad) or (lDir < 0 and curLoad <= targetLoad)):
 
-    # Grab the job type config attributes minRunTime and maxRuntime, processing them to give a runtime
-    actRuntime = int(jobTypes[jType]["minRunTime"]) + random.randint(0, 5000) % (
-        max(1, int(jobTypes[jType]["maxRunTime"])))
-    job["actRunTime"] = actRuntime
-    estError = random.randint(0, 5000) % actRuntime
+            curLoadSTime = curLoadETime
+            if (lState + lDir) < Load_Low or (lState + lDir) >= END_LOAD_STATE:
+                lDir = lDir * -1
+            lState += lDir
+            targetLoad = targetLoad + loadOffset * lDir
+            curLoadETime = curLoadSTime + GetNextLoadDuration(lState)
 
-    if random.randint(0, 5000) % 2 == 0:
-        estRunTime = actRuntime - estError
-    else:
-        estRunTime = actRuntime + estError
+        # Check current load based on num of cores used
+        coresInUse = CalcCoresInUse(submitTime, jobsList, jID)
+        curLoad = coresInUse / totalCores * 100
 
-    job["estRunTime"] = estRunTime
+        # Checks if current load is smaller than target load (understand)
+        if curLoad < targetLoad:
+            submitInterval += (-lTimeOffset)
+        else:
+            submitInterval += lTimeOffset
+
+        if submitInterval < lTimeOffset:
+            submitInterval = lTimeOffset
+
+        # submitInterval > limits[WorkloadTime_Limit].max
+        if submitInterval > 43200:
+            submitInterval = 43200
+
+        # Generate runtimes based on job type
+        jType = GetJobType(jobTypes)
+        job["type"] = jType
+
+        # Grab the job type config attributes minRunTime and maxRuntime, processing them to give a runtime
+        minRuntime = int(jobTypes[jType]["minRunTime"])
+        maxRuntime = int(jobTypes[jType]["maxRunTime"])
+        actRuntime = rt.genRunTime(minRuntime, maxRuntime)
+        job["actRunTime"] = actRuntime
+
+        # Estimate Runtime
+        estError = random.randint(0, 5000) % actRuntime
+
+        if random.randint(1, 5000) % 2 == 0:
+            estRunTime = actRuntime - estError
+        else:
+            estRunTime = actRuntime + estError
+
+        job["estRunTime"] = estRunTime
+
+        # Generate Job requirements
+        resReq = {}
+
+        # Generate core job requirements
+        if curLoad < targetLoad:
+            resReq["cores"] = cr.genJobSize(1 ,maxCapacity[0])
+        else:
+            resReq["cores"] = min(max(1, round(min(HOUR_IN_SECONDS, actRuntime) / (MIN_IN_SECONDS * 10))), maxCapacity[0])
+            estError = random.randint(0, 5000) % (resReq["cores"] * 2)
+            if random.randint(0, 5000) % 2 == 0:
+                resReq["cores"] = max(1, resReq["cores"] - estError)
+            else:
+                resReq["cores"] = min(resReq["cores"] + estError, maxCapacity[0])
+
+        # Generate Memory requirements
+        resReq["mem"] = mr.genMem(MIN_MEM_PER_JOB_CORE, maxCapacity[1], category)
+
+        # Generate disk requirements
+        resReq["disk"] = (MIN_DISK_PER_JOB_CORE + random.randint(0, 5000) % ((1 + resReq["cores"] / 10)
+                                                                             * MIN_DISK_PER_JOB_CORE)) * resReq["cores"]
+        resReq["disk"] -= resReq["disk"] % 100
+        resReq["disk"] = min(resReq["disk"], maxCapacity[2])
+
+        job["resReq"] = resReq
+
+        jobsList.append(job)
+        jID += 1
+
+
+

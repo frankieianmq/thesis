@@ -162,8 +162,6 @@ def main():
         # Generate a submit time that is not the same
         submitTime += random.randint(0,5000) % submitInterval + 1
 
-        print(submitInterval)
-
         if submitTime > curLoadETime and ((lDir > 0 and curLoad >= targetLoad) or (lDir < 0 and curLoad <= targetLoad)):
 
             curLoadSTime = curLoadETime
@@ -227,6 +225,7 @@ def main():
         resReq["mem"] -= resReq["mem"] % 100
         resReq["mem"] = min(resReq["mem"], maxCapacity[1])
 
+        # Generate disk requirements
         resReq["disk"] = (MIN_DISK_PER_JOB_CORE + random.randint(0,5000) % ((1+ resReq["cores"] / 10 )
                                                                             * MIN_DISK_PER_JOB_CORE)) * resReq["cores"]
         resReq["disk"] -= resReq["disk"] % 100
@@ -237,10 +236,11 @@ def main():
         jobsList.append(job)
         jID += 1
 
-main()
+    return jobsList
 
-test =  grab_jobTypes()
+list = main()
+
+print(list[0])
 
 
-t = GetJobType(test)
 

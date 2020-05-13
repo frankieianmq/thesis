@@ -294,6 +294,7 @@ def graphRunTime(runTime):
     plt.xlabel("Run time")
     plt.ylabel("% of jobs")
     plt.legend(loc='lower right')
+    plt.xscale("log")
     plt.ylim(-0.05, 1)
     plt.show()
 
@@ -494,14 +495,9 @@ def main():
 
 
     # Runtime
-    jobRunTime = extractMultiLog(allLogs, 3)
-    cnt = Counter(jobRunTime[0])
+    jobRunTime = extractMultiLog(allLogs, 8)
 
-    cnt50 = {k:v for k,v in cnt.items() if k < 50000}
-    cnt5 = {k:v for k,v in cnt50.items() if v > 4}
-    cnt50d = [k for k,v in cnt50.items() for x in range(v)]
-    cnt50e = [k for k,v in cnt5.items() for x in range(v)]
-    graphRunTime([cnt50d, cnt50e])
+    graphRunTime(jobRunTime)
 
     plt.show()
 
