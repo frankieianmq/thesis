@@ -1,8 +1,13 @@
 This code will generate jobs for DS-Sim and also will be where I analyse logs, create models, and implement generate jobs.
-There are 3 files currently which are:
+The files are:
 - analyseLogs.py: Analyse logs using libraries such as matplotlib
 - main.py: Implementation of generation of jobs for DS-Sim
 - parse_logs.py: Functions that parses workload logs
+- old_jobgen.py: Conversion of ds-sim's job generation into python
+
+The folders are:
+- Component: All the components for generation for jobs
+- configs: This folder has all the configs for testing, and a jobs xml example
 
 
-*Last updated 26/03/20
+*Last updated 19/05/2020
