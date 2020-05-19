@@ -20,9 +20,9 @@ import numpy.random as ra
 
 #Parameters
 genParam = []
-lowParam =[[24.09, -3.60], 'invgauss']
-medParam = [[10.91, -9.73], 'invgauss']
-highParam = [[-573.52, 843.41], 'kstwobign']
+lowParam = [[20.12, 8.43, -368.97, 62175.72], 'johnsonsb']
+medParam = [[0.66, 0.9, 2.47, -0.04, 144.42], 'genexpon']
+highParam = [[1010.69, 1157.41], 'logistic']
 cpuParam = [1, 701, 2001, 3100]
 size = 1
 
@@ -49,6 +49,15 @@ def pickDist(specs):
 
 
 def genMem(min, max, pick):
+    # Checks min/max are negative
+    # Returns 0 (error sign)
+    if min <= 0 or max <= 0:
+        return 0
+
+    # Checks min/max are same
+    if min == max:
+        return 0
+
     #Pick distribution and get distribution
     param = switch[pick]
     dist = getattr(scipy.stats, param[1])
@@ -66,4 +75,4 @@ def genMem(min, max, pick):
 
 # Testing area
 if __name__ == "__main__":
-    print(genMem(1801,100000,1))
+    print(genMem(10,10,3))

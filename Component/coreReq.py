@@ -13,6 +13,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 
+def is_power_of_two(n):
+    if n == 1:
+        return False
+    return (n != 0) and (n & (n-1) == 0)
+
 # Parameters
 probability = [0.722, 0.955, 1]
 potParam = [[0.437,0.227], 'rice']
@@ -23,8 +28,11 @@ size = 1
 # This will generate the variable for POT
 # POT = Power of two
 def genPOT(minCore, maxCore):
-    logmin = max(int(math.floor(math.log(minCore)/math.log(2))), 1)
+    logmin = max(int(math.floor(math.log(minCore)/math.log(2))),1)
     logmax = int(math.floor(math.log(maxCore)/math.log(2)))
+
+    if logmin == logmax:
+        logmin = 1
 
     # Obtain PDF and linespace for generation
     rX = np.linspace(logmin, logmax, logmax - logmin)
@@ -40,7 +48,7 @@ def genPOT(minCore, maxCore):
     return int(math.pow(2, rounded[0]))
 
 
-# Todo This will generate the variable for remainder jobs
+# This will generate the variable for remainder jobs
 # REM = remainder
 # These jobs are neither serial jobs or power of two jobs.
 # Output != 1 || log(x)/log(2) == int
@@ -53,10 +61,20 @@ def genREM(min, max):
     # Obtain Samples, rounding them up
     samples = np.random.choice(rX, size=size, p=rP / np.sum(rP))
     rounded = [int(round(x)) for x in samples]
-    if rounded[0]  == 1:
-        print()
 
-    return rounded[0]
+    # Check if number is power of two
+    # Use number not power of two
+    num = rounded[0]
+    while is_power_of_two(num):
+        num -= 1
+
+    # Check if serial job
+    # If so, return nearest non POT (3)
+    if num == 1:
+        return 3
+
+    # Return core size
+    return num
 
 
 # Given probability, determine which route to go
@@ -76,14 +94,30 @@ def grabDecision(probability, min, max):
 # Input - min, max
 # min = minimum job size, max = maximum job size
 def genJobSize(min, max):
+    # Checks min/max are negative
+    # Returns 0 (error sign)
+    if min <= 0 or max <= 0:
+        return 0
+
+    # Checks min/max are same
+    if min == max:
+        return 0
+
     coreReq = grabDecision(probability, min, max)
 
     return coreReq
 
 
+# Testing ground
 if __name__ == "__main__":
-    '''
-   for x in range(1000):
-        print(genJobSize(1,8))
-    '''
-    print(genREM(1,8))
+    minCore = 1
+    maxCore = 8
+    while maxCore <= 100:
+        print(genJobSize(minCore, maxCore))
+        minCore += 10
+        maxCore += 10
+
+
+    print(genJobSize(1,8))
+    print(genJobSize(-2, -8))
+    print(genJobSize(10, 10))
