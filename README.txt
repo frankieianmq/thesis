@@ -11,4 +11,4 @@ The folders are:
 - Distribution Fitting: This file contains the top 20 lowest SSE values for each fitted attributed
 
 
-*Last updated 19/05/2020
+*Last updated 01/06/2020
