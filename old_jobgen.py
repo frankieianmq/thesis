@@ -7,8 +7,9 @@ for further implementation when model has been produced.
 
 import xml.etree.ElementTree as ET
 import random
+import writeJobs as wj
 
-config_file = "configs/config_simple0.xml"
+config_file = "configs/config_testing_low.xml"
 avgLowTime = 3600 + random.randint(0,1000) % 43200
 avgHighTime = 3600 + random.randint(0,1000) % 43200
 MIN_IN_SECONDS = 60
@@ -158,6 +159,7 @@ def main():
     jID = 0
     while jID < maxJobCount and submitTime < simEndTime:
         job = {}
+        job['id'] = jID
 
         # Generate a submit time that is not the same
         submitTime += random.randint(0,5000) % submitInterval + 1
@@ -224,23 +226,24 @@ def main():
                                                                           * MIN_MEM_PER_JOB_CORE)) * resReq["cores"]
         resReq["mem"] -= resReq["mem"] % 100
         resReq["mem"] = min(resReq["mem"], maxCapacity[1])
+        resReq["mem"] = int(resReq["mem"])
 
         # Generate disk requirements
         resReq["disk"] = (MIN_DISK_PER_JOB_CORE + random.randint(0,5000) % ((1+ resReq["cores"] / 10 )
                                                                             * MIN_DISK_PER_JOB_CORE)) * resReq["cores"]
         resReq["disk"] -= resReq["disk"] % 100
         resReq["disk"] = min(resReq["disk"], maxCapacity[2])
+        resReq["disk"] = int(resReq["disk"])
 
         job["resReq"] = resReq
 
         jobsList.append(job)
         jID += 1
-
     return jobsList
 
-list = main()
-
-print(list[0])
+print(main())
+jobTypes = grab_jobTypes()
+wj.createXMLOriginal(main(), jobTypes)
 
 
 

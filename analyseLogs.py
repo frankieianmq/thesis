@@ -1,13 +1,4 @@
-"""
-This python file will consists of an analysis of the logs
-Variable List:
-1 - Submit Time
-3- Run time
-7 - Req Num of Processors
-6 - Used Mem / 9 - Req Mem
-10 - Status (1: Complete, 0: Failed, 5: cancelled)
 
-"""
 from parse_logs import parseLog, grabPath, parseLogInfo, grabName
 from collections import Counter
 import matplotlib.pyplot as plt
@@ -20,15 +11,17 @@ from pytz import timezone
 import matplotlib.ticker as mtick
 from scipy.optimize import curve_fit
 from openpyxl import Workbook
+import xml.etree.ElementTree as ET
 
 
 
 # Location can be either a folder location or
 # a list of logs
-folder = 'G:\My Drive\Thesis\Workload Logs'
+folder = 'C:\\Users\Frankie\\Google Drive\\Thesis\\Workload Logs'
 
 files = grabPath(folder)
 fileNames = grabName(folder)
+fileNames = ['HPC2N', 'RICC', 'Generated New']
 graphTypes = ['b-', 'r--', 'g--', 'g-','r-', ]
 
 startTime = parseLogInfo(files, "UnixStartTime:")
@@ -239,6 +232,7 @@ def graphInterTime(interTimeList):
         count = Counter(item)
         print(count.most_common(10))
         sorted_inter = np.sort(item)
+        print(len(sorted_inter))
         yvals = np.arange(len(sorted_inter)) / float(len(sorted_inter) - 1)
         store.append(sorted_inter)
         store.append(yvals)
@@ -288,7 +282,7 @@ def graphRunTime(runTime):
         Counter.append(store)
 
     for index in range(len(Counter)):
-        plt.plot(Counter[index][0], Counter[index][1], graphTypes[index], label=index)
+        plt.plot(Counter[index][0], Counter[index][1], graphTypes[index], label=fileNames[index])
 
     #plt.ticklabel_format(style='plain')
     plt.xlabel("Run time")
@@ -454,52 +448,96 @@ def analyseTotalMem(mem, core):
 
     plt.show()
 
+def extractJobXML(xml):
+    for x in xml:
+        print(x['memory'])
+
 
 # Todo - Complete full graph construction
 def main():
     print(files)
-
     allLogs = [parseLog([x]) for x in files]
-    """
-    
-    # Job Size
-    jobSize = extractInfo(logOne, 4)
-    graphJobSize(jobSize)
-    
-    #Job Canc
-    jobCanc = extractInfo(logOne, 10)
-    analyseJobCanc(jobCanc)
-    
-    # Job Memory
-    jobMem = extractMultiLog(allLogs, 6)
-    analyseJobMem(jobMem)
-
-    # Total Job Mem
-    jobSize = extractMultiLog(allLogs, 4)
-    jobMem = extractMultiLog(allLogs, 6)
-    analyseTotalMem(jobMem, jobSize)
-    
-    # Inter-arrival Time
-    jobInterTime = extractInterTime(allLogs, 1)
-    graphInterTime(jobInterTime)
-    
-    # Arrival Rate Daily
-    jobArrival = extractArrivalTime(allLogs, 1)
-    graphArrivalRate(jobArrival)
-
-    # Arrival Rate Weekly
-    jobArrival = extractArrivalTime(allLogs, 2)
-    graphArrivalRate(jobArrival)
-   
-    """
-
-
+    allLogs = [allLogs[0], allLogs[3]]
     # Runtime
     jobRunTime = extractMultiLog(allLogs, 8)
-
     graphRunTime(jobRunTime)
+    '''
+        # Job Size
+        jobSize = extractInfo(logOne, 4)
+        graphJobSize(jobSize)
 
-    plt.show()
+        #Job Canc
+        jobCanc = extractInfo(logOne, 10)
+        analyseJobCanc(jobCanc)
+
+        # Job Memory
+        jobMem = extractMultiLog(allLogs, 6)
+        analyseJobMem(jobMem)
+
+        # Total Job Mem
+        jobSize = extractMultiLog(allLogs, 4)
+        jobMem = extractMultiLog(allLogs, 6)
+        analyseTotalMem(jobMem, jobSize)
+
+        # Inter-arrival Time
+        jobInterTime = extractInterTime(allLogs, 1)
+        graphInterTime(jobInterTime)
+
+        # Arrival Rate Daily
+        jobArrival = extractArrivalTime(allLogs, 1)
+        graphArrivalRate(jobArrival)
+
+        # Arrival Rate Weekly
+        jobArrival = extractArrivalTime(allLogs, 2)
+        graphArrivalRate(jobArrival)
+
+         # Runtime
+        jobRunTime = extractMultiLog(allLogs, 8)
+        graphRunTime(jobRunTime)
+
+        plt.show()
+       
+    
+    oldFile = "C:\\Users\\Frankie\\PycharmProjects\\Thesis\\configs\\ds-jobs.xml"
+    genFile = "C:\\Users\\Frankie\\PycharmProjects\\Thesis\\ds-jobs.xml"
+
+    def testing(log):
+        extractedLog = []
+        oldTime = 0
+
+        for x in log:
+            time = x
+            if oldTime != time:
+                extractedLog.append(time - oldTime)
+                oldTime = time
+        return extractedLog
+
+    tree = ET.parse(oldFile).getroot()
+    storedata = []
+    for child in tree.findall('./job'):
+        storedata.append(child.attrib['submitTime'])
+
+    storedata = [int(test) for test in storedata]
+    storedata = testing(storedata)
+
+    tree = ET.parse(genFile).getroot()
+    genFiledata = []
+    for child in tree.findall('./job'):
+        genFiledata.append(child.attrib['submitTime'])
+    genFiledata = [int(test) for test in genFiledata]
+    genFiledata = testing(genFiledata)
+
+    jobMem = extractInterTime([allLogs[0]], 1)
+    jobMem.append(storedata)
+    jobMem.append(genFiledata)
+
+    storedata = testing(storedata)
+    # Job Memory
+    jobMem = extractInterTime([allLogs[2]],1)
+    jobMem.append(storedata)
+    '''
+
+
 
 
 

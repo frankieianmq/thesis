@@ -19,7 +19,7 @@ import numpy as np
 import numpy.random as ra
 
 #Parameters
-genParam = []
+genParam = [[7.37, 2.97], 'powerlognorm']
 lowParam = [[20.12, 8.43, -368.97, 62175.72], 'johnsonsb']
 medParam = [[0.66, 0.9, 2.47, -0.04, 144.42], 'genexpon']
 highParam = [[1010.69, 1157.41], 'logistic']

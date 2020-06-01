@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Developed by Frankie-->
+<!-- This aims to see the performance of medium CPU count 701 - 2000-->
+<!-- Trying to emulate Metacentrum -->
+<config randomSeed="1234" newline="true">
+  <!-- define server types 
+  Min memory per core is 200MB and the total memory capacity should be the min of 1000MB so as min disk per core -->
+  
+  <servers>
+	<server type="0" limit="20" bootupTime="60" rate="0.1" coreCount="8" memory="8000" disk="8000" />
+	<server type="1" limit="20" bootupTime="60" rate="0.2" coreCount="16" memory="16000" disk="16000" />
+	<server type="2" limit="20" bootupTime="60" rate="0.4" coreCount="10" memory="10000" disk="10000" />
+	<server type="3" limit="20" bootupTime="60" rate="0.8" coreCount="80" memory="80000" disk="80000" />
+    <server type="4" limit="20" bootupTime="60" rate="0.1" coreCount="32" memory="32000" disk="32000" />
+	<server type="5" limit="20" bootupTime="60" rate="0.2" coreCount="64" memory="64000" disk="64000" />
+	<server type="6" limit="20" bootupTime="60" rate="0.4" coreCount="148" memory="148000" disk="148000" />
+	<server type="7" limit="20" bootupTime="60" rate="0.8" coreCount="70" memory="70000" disk="70000" />
+    <server type="8" limit="20" bootupTime="60" rate="0.1" coreCount="20" memory="20000" disk="20000" />
+	<server type="9" limit="20" bootupTime="60" rate="0.2" coreCount="6" memory="6000" disk="6000" />
+	<server type="10" limit="20" bootupTime="60" rate="0.4" coreCount="92" memory="92000" disk="92000" />
+	<server type="11" limit="20" bootupTime="60" rate="0.8" coreCount="152" memory="152000" disk="152000" />
+    <server type="12" limit="20" bootupTime="60" rate="0.8" coreCount="64" memory="64000" disk="64000" />
+    <server type="13" limit="20" bootupTime="60" rate="0.8" coreCount="44" memory="44000" disk="44000" />
+  </servers>
+  <!-- define job types -->
+  <!-- the sum of ratio values must be 100 (100%) -->
+  <!-- minRunTime and maxRunTime must be 1 or greater bounded by INT_MAX -->
+  <jobs>
+    <job type="instant" minRunTime="1" maxRunTime="100000" populationRate="100" />
+
+
+  </jobs>
+  <!-- define system load -->
+  <!-- attributes: type: workload pattern, minLoad: min load, maxLoad: max load, 
+  avgLowTime & avgHighTime: average lightly/heavily loaded period, 
+  avgTransitTime: average transition time between low and high (in seconds) -->
+  <!-- some other typical cases: moderate (31-60%), heavy (61-90%), overloaded (91%-) and alternating (peaks and valleys) -->
+  <!-- alternating load example: type="alternating" minLoad="10" maxLoad="90" avgLowTime="14400" avgTransitTime="10800" avgHighTime="10800" -->
+  <!-- transition time will be internally divided into at least three time periods 
+  (bounded by 1 hour per divided period) for smooth, realistic transition 
+  each load time period must be between one hour and twelve hours (i.e., 3600 - 43200 seconds) -->
+  <workload type="light" minLoad="10" maxLoad="50" />
+  <termination>
+	<!-- simulation terminates whichever condition meets first -->
+	<!-- 60 seconds * 60 minutes * 24 hours * 30 days = 2592000 seconds -->
+	<condition type="endtime" value="2592000" />
+	<condition type="jobcount" value="1000" />
+  </termination>
+</config>

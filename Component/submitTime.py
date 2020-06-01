@@ -67,7 +67,8 @@ def genInterArrival(min, max, pick):
 
 # This function will generate bag of tasks number
 def genBOT(min, max):
-
+    if min == max:
+        return 1
 
 
     # Obtain PDF and linespace for generation

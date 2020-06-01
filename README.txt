@@ -8,6 +8,7 @@ The files are:
 The folders are:
 - Component: All the components for generation for jobs
 - configs: This folder has all the configs for testing, and a jobs xml example
+- Distribution Fitting: This file contains the top 20 lowest SSE values for each fitted attributed
 
 
 *Last updated 19/05/2020

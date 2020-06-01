@@ -8,9 +8,9 @@ from Component import runtime as rt
 from Component import submitTime as st
 from Component import memReq as mr
 from Component import coreReq as cr
+import writeJobs as wj
 
-
-config_file = "configs/config_simple1.xml"
+config_file = "configs/config_testing_low.xml"
 avgLowTime = 3600 + random.randint(0,1000) % 43200
 avgHighTime = 3600 + random.randint(0,1000) % 43200
 MIN_IN_SECONDS = 60
@@ -133,6 +133,7 @@ def main():
 
     # Grab largest server type
     maxCapacity = largest_prop('servers/server', ['coreCount', 'memory', 'disk'])
+    print(maxCapacity)
     lTimeOffset = 5
     curLoad = 0
 
@@ -151,6 +152,7 @@ def main():
     loadOffset = 10
     totalCores = CalcTotalCoreCount("server");
     category = mr.pickDist(totalCores)
+    print(category)
     hour = 0
     botProbability = 0.2
 
@@ -170,11 +172,13 @@ def main():
     botMax = max(int(round(arrivalRate * botProbability)),2)
     botCount = 0
 
+    print("Starting generation!")
 
 
     while jID < maxJobCount and submitTime < simEndTime:
         job = {}
         job['id'] = jID
+        print("Generating Job: " + str(jID))
 
         # Check if submit time greater than
         if hourCount == arrivalRate:
@@ -260,7 +264,7 @@ def main():
 
             # Generate runtimes based on job type
             jType = GetJobType(jobTypes)
-            job["type"] = jType
+            job["type"] = jobTypes[jType]["type"]
 
             # Grab the job type config attributes minRunTime and maxRuntime, processing them to give a runtime
             minRuntime = int(jobTypes[jType]["minRunTime"])
@@ -305,10 +309,12 @@ def main():
 
         jobsList.append(job)
         jID += 1
-        print(job)
+    return jobsList
 
 # Testing area
 if __name__ == "__main__":
-    main()
+    jobTypes = grab_jobTypes()
+    wj.createXML(main(), jobTypes)
+    print("Done generating!")
 
 
