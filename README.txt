@@ -4,6 +4,7 @@ The files are:
 - main.py: Implementation of generation of jobs for DS-Sim
 - parse_logs.py: Functions that parses workload logs
 - old_jobgen.py: Conversion of ds-sim's job generation into python
+- FitDist.ipynb: Jupyet Notebook for distribution fitting
 
 The folders are:
 - Component: All the components for generation for jobs
