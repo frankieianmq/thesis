@@ -1,0 +1,112 @@
+This document details the best fitted distributions for Power-Of-Two job size
+Testing these distributions after finding in top 
+['laplace', 'foldcauchy', 'loglaplace', 'genhalflogistic', 'genexpon', 'rayleigh', 'rice', 'halfnorm', 'gompertz', 'burr', 'mielke', 'exponpow', 'gilbrat', 'weibull_min', 'wald', 'kstwobign', 'gausshyper', 'ncx2', 'powerlognorm', 'beta', 'exponweib', 'chi', 'nakagami', 'gengamma', 'pearson3', 'erlang', 'chi2', 'gamma', 'johnsonsb', 'f', 'betaprime', 'recipinvgauss', 'fatiguelife', 'halflogistic', 'invgauss', 'johnsonsu', 'lognorm', 'fisk', 'invgamma', 'gumbel_r', 'alpha', 'invweibull', 'genextreme', 'weibull_max', 'genlogistic', 'hypsecant', 'maxwell', 'foldnorm', 'logistic', 't', 'genpareto', 'loggamma', 'norm', 'tukeylambda', 'halfcauchy', 'triang', 'pareto', 'expon', 'cosine', 'gumbel_l', 'lomax', 'truncexpon', 'anglit', 'dweibull', 'powerlaw', 'ksone', 'powernorm', 'semicircular', 'uniform', 'rdist', 'bradford', 'dgamma', 'reciprocal', 'truncnorm', 'arcsine', 'vonmises', 'wrapcauchy']
+
+
+Best Fitted Distribution:
+
+
+
+**RICC**
+rice (0.9210794453298967, 0.8910289320212001, 2.341115549180132)
+
+
+laplace 0.05653855089265441
+foldcauchy 0.05702251342393255
+loglaplace 0.0589606568605913
+genhalflogistic 0.06427210856895395
+genexpon 0.06487582405110982
+rayleigh 0.0654144690419404
+rice 0.06770144093774222
+halfnorm 0.06850534907305098
+gompertz 0.0686561906167759
+burr 0.06881650883893436
+mielke 0.06881669685315024
+exponpow 0.06978204920758226
+gilbrat 0.06988306025624018
+weibull_min 0.06999339810325005
+wald 0.07050761831883268
+kstwobign 0.07087047514652549
+gausshyper 0.0711652842022651
+ncx2 0.07116821639794493
+powerlognorm 0.07130894251296334
+beta 0.07143076773074657
+
+**METECENTRUM**
+
+rice (0.0002668886156870818, 0.4917211009860796, 1.1817411729433847)
+
+
+gausshyper 0.1676302068950069
+betaprime 0.17029191119004763
+nakagami 0.1715038487849022
+invgamma 0.17371334728534396
+weibull_min 0.17520861292308793
+chi2 0.17847084129249818
+burr 0.17881243478160622
+genextreme 0.17992328164160984
+invweibull 0.17992637096002212
+bradford 0.18217391487195883
+exponpow 0.18240818374215398
+erlang 0.18298215534222645
+halflogistic 0.18306752727187192
+alpha 0.1836179734400832
+chi 0.18455274130481308
+recipinvgauss 0.18534327853298885
+powerlaw 0.1871285380327153
+mielke 0.18775558549736207
+halfnorm 0.1878201576055464
+foldnorm 0.1878215015446605
+
+**PIK**
+
+rice (0.8210474352195569, -0.4885283010650422, 3.3114170106625895)
+
+
+anglit 0.1000042695189043
+cosine 0.10202869743953458
+genextreme 0.10267943467560743
+weibull_max 0.10267976561212373
+loggamma 0.10282481766224975
+johnsonsu 0.10291070667662078
+t 0.1032794835551136
+norm 0.10328095757646387
+gamma 0.1043448255582758
+logistic 0.10445998665689399
+gumbel_l 0.10495148519859654
+hypsecant 0.10530704311017812
+erlang 0.10538501145060421
+maxwell 0.10672852017821927
+invgamma 0.10751324352076863
+rice 0.11072605881071111
+fisk 0.11190538822830773
+rayleigh 0.11215657997762733
+lognorm 0.11265793047835865
+invweibull 0.1127313907499315
+
+**HPC2N**
+
+rice (0.0008364795932743337, 0.09681541082584438, 1.8653841221209047)
+
+
+
+hypsecant 0.1511674451568738
+cosine 0.15160679571036245
+logistic 0.1516898145128915
+loggamma 0.15304089262473103
+t 0.15360519135904296
+norm 0.153612581440242
+laplace 0.1557758813457767
+gumbel_l 0.15909859778243407
+rdist 0.1650041966617651
+maxwell 0.1716912303165824
+weibull_max 0.18089716720642826
+genlogistic 0.18093882968355304
+gumbel_r 0.1809685363437912
+dweibull 0.18173106693885102
+kstwobign 0.18908343889272247
+triang 0.1977155604655463
+dgamma 0.2024944050952252
+truncexpon 0.2030002770482214
+rice 0.20317654768279234
+rayleigh 0.20317764330284527

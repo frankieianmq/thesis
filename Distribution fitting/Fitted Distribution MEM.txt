@@ -1,0 +1,40 @@
+This document details the best fitted distributions for Job Memory size
+Testing these distributions after finding in top 
+
+
+Best Fitted Distribution:
+
+
+
+**RICC**
+
+
+
+**METECENTRUM**
+
+powerlognorm 8.188001588008013e-09
+t 2.0216765472347267e-08
+invweibull 2.763404160543705e-08
+laplace 3.481028891856701e-08
+dgamma 5.085403196310324e-08
+beta 7.416353885427671e-08
+genlogistic 9.834933244269869e-08
+gumbel_r 9.910344156333994e-08
+hypsecant 1.1630549825747453e-07
+dweibull 1.2123673697890704e-07
+logistic 2.822351575327857e-07
+genhalflogistic 3.461194830374512e-07
+halflogistic 4.886042066240204e-07
+halfnorm 7.564499739995499e-07
+kstwobign 8.622097046932659e-07
+rayleigh 8.9404114772689e-07
+gompertz 9.307907157019656e-07
+foldnorm 9.665993125856035e-07
+rice 1.0715847139270479e-06
+
+**PIK**
+
+
+
+
+**HPC2N**
