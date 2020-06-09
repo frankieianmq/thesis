@@ -10,7 +10,7 @@ from Component import memReq as mr
 from Component import coreReq as cr
 import writeJobs as wj
 
-config_file = "configs/config_testing_low.xml"
+config_file = "configs/config_testing_multijob.xml"
 avgLowTime = 3600 + random.randint(0,1000) % 43200
 avgHighTime = 3600 + random.randint(0,1000) % 43200
 MIN_IN_SECONDS = 60

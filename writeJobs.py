@@ -18,7 +18,7 @@ def createXML(jobs, jobTypes):
                                   ,disk=str(x['resReq']['disk'])))
     # pretty string
     s = etree.tostring(root, pretty_print=True)
-    with open('./ds-jobs.xml', 'wb') as f:
+    with open('xml/ds-jobs.xml', 'wb') as f:
         f.write(s)
 
 def createXMLOriginal(jobs, jobTypes):
@@ -35,5 +35,5 @@ def createXMLOriginal(jobs, jobTypes):
                                   , disk=str(x['resReq']['disk'])))
     # pretty string
     s = etree.tostring(root, pretty_print=True)
-    with open('./ds-jobs.xml', 'wb') as f:
+    with open('xml/ds-jobs.xml', 'wb') as f:
         f.write(s)

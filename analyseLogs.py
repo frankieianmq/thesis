@@ -12,16 +12,25 @@ import matplotlib.ticker as mtick
 from scipy.optimize import curve_fit
 from openpyxl import Workbook
 import xml.etree.ElementTree as ET
+import matplotlib.pylab as pylab
+params = {'legend.fontsize': 14,
+         'axes.labelsize': 14,
+         'axes.titlesize': 14,
+         'xtick.labelsize': 14,
+         'ytick.labelsize': 14}
+pylab.rcParams.update(params)
 
+
+plt.gcf().subplots_adjust(bottom=0.15)
 
 
 # Location can be either a folder location or
 # a list of logs
-folder = 'C:\\Users\Frankie\\Google Drive\\Thesis\\Workload Logs'
+folder = 'C:\\Users\\Frankie\\Google Drive\\Thesis\\Workload Logs - Analysis'
 
 files = grabPath(folder)
 fileNames = grabName(folder)
-fileNames = ['HPC2N', 'RICC', 'Generated New']
+fileNames = ["Workload", "Generated"]
 graphTypes = ['b-', 'r--', 'g--', 'g-','r-', ]
 
 startTime = parseLogInfo(files, "UnixStartTime:")
@@ -181,8 +190,8 @@ def extractArrivalTime(log, variable):
         store = []
         for y in x:
             for z in y:
-                time = int(z[1]) + int(startTime[logIndex])
-                spec = datetime.fromtimestamp(time, tz=timezone(timeZone[logIndex]))
+                time = int(z[1]) + int(startTime[logIndex][0])
+                spec = datetime.fromtimestamp(time, tz=timezone(timeZone[logIndex][0]))
                 if variable == 1:
                     store.append(spec.hour)
                 else:
@@ -207,6 +216,7 @@ def extractInfo(log, variable):
 
 def extractMultiLog(logs, variable):
     extractedLog = []
+
 
     for x in logs:
         logIndex = 0
@@ -244,8 +254,8 @@ def graphInterTime(interTimeList):
 
 
     plt.ticklabel_format(style='plain')
-    plt.xlabel("Inter-arrival Time")
-    plt.ylabel("% of jobs")
+    plt.xlabel("Inter-arrival Time (Seconds)")
+    plt.ylabel("Number of Jobs (%)")
     plt.legend(loc='lower right')
     plt.xscale("log")
     plt.xlim(1,100000)
@@ -266,6 +276,8 @@ def graphArrivalRate(logs):
     for x in range(len(CounterList)):
         plt.figure()
         plt.bar(CounterList[x][0], CounterList[x][1])
+        plt.xlabel("Time (hour)")
+        plt.ylabel("Number of Jobs")
 
     plt.show()
 
@@ -285,8 +297,8 @@ def graphRunTime(runTime):
         plt.plot(Counter[index][0], Counter[index][1], graphTypes[index], label=fileNames[index])
 
     #plt.ticklabel_format(style='plain')
-    plt.xlabel("Run time")
-    plt.ylabel("% of jobs")
+    plt.xlabel("Run time (Seconds)")
+    plt.ylabel("Number of Jobs (%)")
     plt.legend(loc='lower right')
     plt.xscale("log")
     plt.ylim(-0.05, 1)
@@ -295,24 +307,24 @@ def graphRunTime(runTime):
 
 # Graphs job size
 def graphJobSize(jobSize):
-    count = Counter(jobSize)
+    Counter = []
+    for item in jobSize:
+        store = []
+        sorted_runTime = np.sort(item)
+        yvals = np.arange(len(sorted_runTime)) / float(len(sorted_runTime) - 1)
+        store.append(sorted_runTime)
+        store.append(yvals)
+        Counter.append(store)
 
-    # Analysis
-    print(analyseJobSize(count, 32))
-    print(count)
-    print(count.values())
-    print(count.keys())
-    '''
-    plt.bar(count.keys(), count.values())
-    plt.show()
-    '''
-    sorted_mem = np.sort(jobSize)
+    for index in range(len(Counter)):
+        plt.plot(Counter[index][0], Counter[index][1], graphTypes[index], label=fileNames[index])
 
-    yvals = np.arange(len(sorted_mem)) / float(len(sorted_mem) - 1)
-
-    plt.plot(sorted_mem, yvals)
-
-    plt.ticklabel_format(style='plain')
+    # plt.ticklabel_format(style='plain')
+    plt.xlabel("Job Size (Cores)")
+    plt.ylabel("Number of Jobs (%)")
+    plt.legend(loc='lower right')
+    plt.xscale("log")
+    plt.ylim(-0.05, 1)
     plt.show()
 
 
@@ -399,8 +411,8 @@ def analyseJobMem(mem):
         plt.plot(listMem[index][0], listMem[index][1], graphTypes[index], label=fileNames[index])
 
     plt.ticklabel_format(style='plain')
-    plt.xlabel("Memory Size")
-    plt.ylabel("% of jobs")
+    plt.xlabel("Memory Size (MB)")
+    plt.ylabel("Number of Jobs (%)")
     plt.legend(loc='lower right')
     plt.xscale("log")
     plt.ylim(-0.05, 1)
@@ -440,9 +452,9 @@ def analyseTotalMem(mem, core):
         plt.plot(Counter[index][0], Counter[index][1], graphTypes[index], label=fileNames[index])
 
     plt.ticklabel_format(style='plain')
-    plt.xlabel("Memory Size")
-    plt.ylabel("% of jobs")
-    plt.legend(loc='lower right')
+    plt.xlabel("Memory Size (MB)")
+    plt.ylabel("Number of jobs (%)")
+    plt.legend(loc='upper left')
     plt.xscale("log")
     plt.ylim(-0.05, 1)
 
@@ -457,14 +469,12 @@ def extractJobXML(xml):
 def main():
     print(files)
     allLogs = [parseLog([x]) for x in files]
-    allLogs = [allLogs[0], allLogs[3]]
-    # Runtime
-    jobRunTime = extractMultiLog(allLogs, 8)
-    graphRunTime(jobRunTime)
+    #allLogs = [allLogs[0], allLogs[3]]
+
     '''
         # Job Size
         jobSize = extractInfo(logOne, 4)
-        graphJobSize(jobSize)
+        # graphJobSize(jobSize)
 
         #Job Canc
         jobCanc = extractInfo(logOne, 10)
@@ -473,6 +483,10 @@ def main():
         # Job Memory
         jobMem = extractMultiLog(allLogs, 6)
         analyseJobMem(jobMem)
+         jobMem = [extractInfo(allLogs[0], 6)]
+        jobMem.append(extractInfo(allLogs[1], 6))
+        jobMem.append(extractInfo(allLogs[2], 6))
+        jobMem.append(extractInfo(allLogs[3], 9))
 
         # Total Job Mem
         jobSize = extractMultiLog(allLogs, 4)
@@ -491,13 +505,14 @@ def main():
         jobArrival = extractArrivalTime(allLogs, 2)
         graphArrivalRate(jobArrival)
 
-         # Runtime
-        jobRunTime = extractMultiLog(allLogs, 8)
+         # Runtime 3 or 8
+        jobRunTime = extractMultiLog(allLogs, 3)
         graphRunTime(jobRunTime)
 
         plt.show()
        
-    
+    '''
+    '''
     oldFile = "C:\\Users\\Frankie\\PycharmProjects\\Thesis\\configs\\ds-jobs.xml"
     genFile = "C:\\Users\\Frankie\\PycharmProjects\\Thesis\\ds-jobs.xml"
 
@@ -515,7 +530,7 @@ def main():
     tree = ET.parse(oldFile).getroot()
     storedata = []
     for child in tree.findall('./job'):
-        storedata.append(child.attrib['submitTime'])
+        storedata.append(child.attrib['memory'])
 
     storedata = [int(test) for test in storedata]
     storedata = testing(storedata)
@@ -536,6 +551,34 @@ def main():
     jobMem = extractInterTime([allLogs[2]],1)
     jobMem.append(storedata)
     '''
+    oldFile = "C:\\Users\\Frankie\\PycharmProjects\\Thesis\\xml\\ds-jobs-low.xml"
+
+    def testing(log):
+        extractedLog = []
+        oldTime = 0
+
+        for x in log:
+            time = x
+            if oldTime != time:
+                extractedLog.append(time - oldTime)
+                oldTime = time
+        return extractedLog
+
+    tree = ET.parse(oldFile).getroot()
+    storedata = []
+    for child in tree.findall('./job'):
+        storedata.append(child.attrib['estRunTime'])
+
+    storedata = [int(test) for test in storedata]
+   # storedata = testing(storedata)
+
+    jobMem = extractMultiLog([allLogs[0]], 3)
+    jobMem.append(storedata)
+    graphRunTime(jobMem)
+
+
+
+
 
 
 
